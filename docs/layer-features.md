@@ -179,6 +179,8 @@ componentStyles: {
 
 - deactivated: **optional**, if this is true, hasUpgrade, hasChallenge, hasAchievement, and hasMilestone will return false for things in the layer, and you will be unable to buy or click things, or gain achievements/milestones on the layer. You will have to disable effects of buyables, the innate layer effect, and possibly other things yourself.
 
+- paused: **optional**, if this is true, all layer functionality will be frozen, and you will be unable to buy or sell things, or gain achievements/milestones on the layer. All data, upgrades, and effects will remain unchanged, and any functions other than "paused" will not be called as part of the update loop. Visual components, however, will still be updated as long as the layer is being viewed, and any toggles or miscellaneous buttons will remain active.
+
 ## Custom Prestige type  
 (All of these can also be used by other prestige types)
 

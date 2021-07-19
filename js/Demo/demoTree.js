@@ -46,6 +46,14 @@ addNode("h", {
 }, 
 )
 
+addNode("p", {
+    layerShown: true,
+    tooltip() { return player.paused ? "Unpause the game" : "Pause the game" },
+    row: "side",
+    canClick: true,
+    onClick() { if (player.paused) { delete player.paused } else player.paused = true }
+})
+
 addLayer("tree-tab", {
     tabFormat: [["tree", function() {return (layoutInfo.treeLayout ? layoutInfo.treeLayout : TREE_LAYERS)}]],
     previousTab: "",

@@ -96,9 +96,11 @@ function updateTemp() {
 	if (tmp === undefined)
 		setupTemp()
 
-	updateTempData(layers, tmp, funcs)
+	updateTempData(layers, tmp, funcs, undefined, true)
+	updatePaused(layers, tmp, funcs)
 
 	for (layer in layers){
+		if (tmp[layer].paused) continue
 		tmp[layer].resetGain = getResetGain(layer)
 		tmp[layer].nextAt = getNextAt(layer)
 		tmp[layer].nextAtDisp = getNextAt(layer, true)
@@ -121,8 +123,33 @@ function updateTemp() {
 	}
 }
 
-function updateTempData(layerData, tmpData, funcsData, useThis) {
+function updatePaused(layerData, tmpData, funcsData, useThis) {
 	for (item in funcsData){
+		if (tmpData[item].paused !== true) continue
+		if ((!!layerData[item]) && (layerData[item].constructor === Object) || (typeof layerData[item] === "object") && traversableClasses.includes(layerData[item].constructor.name)) {
+			if (isFunction(layerData[item].paused) && !isFunction(tmpData[item].paused)) {
+				let value
+
+				if (useThis !== undefined) value = layerData[item].paused.bind(useThis)()
+				else value = layerData[item].paused()
+				Vue.set(tmpData[item], "paused", value)
+			}
+		}
+	}
+}
+
+function updateTempData(layerData, tmpData, funcsData, useThis, firstStep = false) {
+	for (item in funcsData){
+		if (firstStep) {
+			if (tmpData[item].paused === true) continue
+			if (isFunction(layerData[item].paused) && !isFunction(tmpData[item].paused)) {
+				let value
+
+				if (useThis !== undefined) value = layerData[item].paused.bind(useThis)()
+				else value = layerData[item].paused()
+				Vue.set(tmpData[item], "paused", value)
+			}
+		}
 		if (Array.isArray(layerData[item])) {
 			if (item !== "tabFormat" && item !== "content") // These are only updated when needed
 				updateTempData(layerData[item], tmpData[item], funcsData[item], useThis)

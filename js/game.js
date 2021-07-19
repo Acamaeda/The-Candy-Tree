@@ -128,6 +128,7 @@ function canReset(layer)
 
 function rowReset(row, layer) {
 	for (lr in ROW_LAYERS[row]){
+		if(tmp[lr].paused) continue
 		if(layers[lr].doReset) {
 			if (!isNaN(row)) Vue.set(player[lr], "activeChallenge", null) // Exit challenges on any row reset on an equal or higher row
 			run(layers[lr].doReset, layers[lr], layer)
@@ -342,6 +343,7 @@ function gameLoop(diff) {
 	for (let x = 0; x <= maxRow; x++){
 		for (item in TREE_LAYERS[x]) {
 			let layer = TREE_LAYERS[x][item]
+			if (tmp[layer].paused) continue
 			player[layer].resetTime += diff
 			if (tmp[layer].passiveGeneration) generatePoints(layer, diff*tmp[layer].passiveGeneration);
 			if (layers[layer].update) layers[layer].update(diff);
@@ -351,6 +353,7 @@ function gameLoop(diff) {
 	for (row in OTHER_LAYERS){
 		for (item in OTHER_LAYERS[row]) {
 			let layer = OTHER_LAYERS[row][item]
+			if (tmp[layer].paused) continue
 			player[layer].resetTime += diff
 			if (tmp[layer].passiveGeneration) generatePoints(layer, diff*tmp[layer].passiveGeneration);
 			if (layers[layer].update) layers[layer].update(diff);
@@ -360,6 +363,7 @@ function gameLoop(diff) {
 	for (let x = maxRow; x >= 0; x--){
 		for (item in TREE_LAYERS[x]) {
 			let layer = TREE_LAYERS[x][item]
+			if (tmp[layer].paused) continue
 			if (tmp[layer].autoPrestige && tmp[layer].canReset) doReset(layer);
 			if (layers[layer].automate) layers[layer].automate();
 			if (tmp[layer].autoUpgrade) autobuyUpgrades(layer)
@@ -369,6 +373,7 @@ function gameLoop(diff) {
 	for (row in OTHER_LAYERS){
 		for (item in OTHER_LAYERS[row]) {
 			let layer = OTHER_LAYERS[row][item]
+			if (tmp[layer].paused) continue
 			if (tmp[layer].autoPrestige && tmp[layer].canReset) doReset(layer);
 			if (layers[layer].automate) layers[layer].automate();
 				player[layer].best = player[layer].best.max(player[layer].points)
@@ -377,6 +382,7 @@ function gameLoop(diff) {
 	}
 
 	for (layer in layers){
+		if (tmp[layer].paused) continue
 		if (layers[layer].milestones) updateMilestones(layer);
 		if (layers[layer].achievements) updateAchievements(layer)
 	}
@@ -392,6 +398,7 @@ function hardReset(resetOptions) {
 }
 
 var ticking = false
+var paused = false
 
 var interval = setInterval(function() {
 	if (player===undefined||tmp===undefined) return;
@@ -401,16 +408,19 @@ var interval = setInterval(function() {
 	let now = Date.now()
 	let diff = (now - player.time) / 1e3
 	let trueDiff = diff
-	if (player.offTime !== undefined) {
-		if (player.offTime.remain > modInfo.offlineLimit * 3600) player.offTime.remain = modInfo.offlineLimit * 3600
-		if (player.offTime.remain > 0) {
-			let offlineDiff = Math.max(player.offTime.remain / 10, diff)
-			player.offTime.remain -= offlineDiff
-			diff += offlineDiff
+	if (!paused && !player.paused) {
+		if (player.offTime !== undefined) {
+			if (player.offTime.remain > modInfo.offlineLimit * 3600) player.offTime.remain = modInfo.offlineLimit * 3600
+			if (player.offTime.remain > 0) {
+				let offlineDiff = Math.max(player.offTime.remain / 10, diff)
+				player.offTime.remain -= offlineDiff
+				diff += offlineDiff
+			}
+			if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined
 		}
-		if (!options.offlineProd || player.offTime.remain <= 0) player.offTime = undefined
-	}
-	if (player.devSpeed) diff *= player.devSpeed
+		if (player.devSpeed) diff *= player.devSpeed
+	} else diff = 0
+	
 	player.time = now
 	if (needCanvasUpdate){ resizeCanvas();
 		needCanvasUpdate = false;

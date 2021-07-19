@@ -51,6 +51,9 @@ addLayer("c", {
             eff.waffleBoost = eff.waffleBoost.times(buyableEffect(this.layer, 11).first)
             return "which are boosting waffles by "+format(eff.waffleBoost)+" and increasing the Ice Cream cap by "+format(eff.icecreamCap)
         },
+        paused() { // Optional, controlls if the layer is updated every game tick or not
+            return player.c.paused
+        },
         infoboxes:{
             coolInfo: {
                 title: "Lore",
@@ -353,7 +356,11 @@ addLayer("c", {
                     ["raw-html", function() {return "<h1> C O N F I R M E D </h1>"}], "blank",
                     ["microtabs", "stuff", {'width': '600px', 'height': '350px', 'background-color': 'brown', 'border-style': 'solid'}],
                     ["display-text", "Adjust how many points H gives you!"],
-                    ["slider", ["otherThingy", 1, 30]], "blank", ["upgrade-tree", [[11], 
+                    ["slider", ["otherThingy", 1, 30]], 
+                    ["row", [
+                        ["display-text", "Stop the candy flows"], ["toggle", ["c", "paused"]]
+                    ]],
+                    "blank", ["upgrade-tree", [[11], 
                     [12, 22, 22, 11]]]
                 ]
             }
